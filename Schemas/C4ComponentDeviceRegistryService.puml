@@ -1,0 +1,26 @@
+@startuml
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Владелец умного дома, управление устройствами через web интерфейс или мобильное приложение")
+
+Container(deviceReg, "Device Registry Service", "Сервис управления устройствами") {
+  
+  Component(api, "Device Registry API", "REST API для CRUD операций с устройствами")
+  Component(deviceManager, "Device Manager", "Управляет состоянием устройств, обновляет информацию о датчиках и исполнительных механизмах")
+  Component(locationService, "Location Service", "Определяет расположение устройств в доме")
+  Component(eventsPublisher, "Events Publisher", "Отправляет события об изменении статуса устройств в Kafka")
+  Component(repository, "Repository", "Обеспечивает доступ к PostgreSQL для хранения информации об устройствах и датчиках")
+}
+
+Container(kafka, "Message Broker", "Kafka", "Асинхронная коммуникация между микросервисами (телеметрия, команды, уведомления).")
+
+Rel(user, api, "Взаимодействует через API (через WarmHouse API)")
+Rel(api, deviceManager, "Запросы CRUD и получение статусов")
+Rel(deviceManager, locationService, "Определение позиции устройства в доме")
+Rel(locationService, repository, "Чтение данных устройств для вычисления расположения")
+Rel(deviceManager, repository, "Чтение/запись данных об устройствах")
+Rel(deviceManager, eventsPublisher, "Публикация событий изменений статусов")
+Rel(eventsPublisher, kafka, "События устройств для других сервисов")
+
+@enduml

@@ -1,0 +1,263 @@
+asyncapi: 2.6.0
+info:
+  title: WarmHouse 2.0 Async API
+  description: Асинхронный API WarmHouse 2.0
+  version: 1.0.0
+channels:
+  telemetry.deviceData.in:
+    description: Запросы на получение актуальных значений (положений) датчиков и устройств
+    publish:
+      summary: Запрос на получение значения устройства
+      operationId: sendTelemetryRequest
+      message:
+        $ref: '#/components/messages/TelemetryRequestMessage'
+    subscribe:
+      summary: Получение запроса на устройство (для Device Gateway)
+      operationId: receiveTelemetryRequest
+      message:
+        $ref: '#/components/messages/TelemetryRequestMessage'
+    
+  telemetry.deviceData.out:
+    description: Публикация актуальных значений (положений) датчиков и устройств
+    publish:
+      summary: Отправка актуальных данных устройства в систему
+      operationId: sendTelemetryData
+      message:
+        $ref: '#/components/messages/TelemetryResponseMessage'
+    subscribe:
+      summary: Получение актуальных данных устройства (для Telemetry Service, скриптов, фронтенда)
+      operationId: receiveTelemetryData
+      message:
+        $ref: '#/components/messages/TelemetryResponseMessage'
+  
+  scripts.execute.in:
+    description: Запрос на выполнение скрипта
+    publish:
+      summary: Отправка запроса на выполнение скрипта
+      operationId: sendScriptExecutionRequest
+      message:
+        $ref: '#/components/messages/ScriptExecutionRequestMessage'
+    subscribe:
+      summary: Получение запроса на выполнение скрипта (для Script Engine)
+      operationId: receiveScriptExecutionRequest
+      message:
+        $ref: '#/components/messages/ScriptExecutionRequestMessage'
+
+  scripts.execute.out:
+    description: Результат выполнения скрипта
+    publish:
+      summary: Результат выполнения скрипта
+      operationId: sendScriptExecutionResult
+      message:
+        $ref: '#/components/messages/ScriptExecutionResponseMessage'
+    subscribe:
+      summary: Получение результатов выполнения скрипта
+      operationId: receiveScriptExecutionResult
+      message:
+        $ref: '#/components/messages/ScriptExecutionResponseMessage'
+    
+  
+  commands.device.in:
+    description: Отправка команды устройству
+    publish:
+      summary: Публикация команды для устройства
+      operationId: sendDeviceCommand
+      message:
+        $ref: '#/components/messages/DeviceCommandRequestMessage'
+    subscribe:
+      summary: Получение команды устройством (для Device Gateway)
+      operationId: receiveDeviceCommand
+      message:
+        $ref: '#/components/messages/DeviceCommandRequestMessage'
+        
+  commands.device.out:
+    description: Результат выполнения команды устройством
+    publish:
+      summary: Публикация результата выполнения команды
+      operationId: sendDeviceCommandResult
+      message:
+        $ref: '#/components/messages/DeviceCommandResponseMessage'
+    subscribe:
+      summary: Получение результата выполнения команды (для Telemetry Service, скриптов, фронтенда)
+      operationId: receiveDeviceCommandResult
+      message:
+        $ref: '#/components/messages/DeviceCommandResponseMessage'
+        
+components:
+  messages:
+    TelemetryRequestMessage:
+      name: TelemetryRequestMessage
+      title: Запрос телеметрии устройства
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - device_id
+          - request_type
+        properties:
+          device_id:
+            type: string
+            format: uuid
+            description: ID устройства, для которого запрашивается значение
+          request_type:
+            type: string
+            description: Тип запроса, например "get_current_value"
+      examples:
+        - payload:
+            device_id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+            request_type: "get_current_value"
+
+    TelemetryResponseMessage:
+      name: TelemetryResponseMessage
+      title: Актуальная телеметрия устройства
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - device_id
+          - timestamp
+          - value
+          - unit
+        properties:
+          device_id:
+            type: string
+            format: uuid
+            description: ID устройства
+          timestamp:
+            type: string
+            format: date-time
+            description: Время измерения
+          value:
+            type: string
+            description: Измеренное значение показателя
+          unit:
+            type: string
+            description: Единица измерения (например, °C)
+      examples:
+        - payload:
+            device_id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+            timestamp: "2025-11-06T09:00:00Z"
+            value: "23"
+            unit: "°C"
+               
+    ScriptExecutionResponseMessage:
+      name: ScriptExecutionResponseMessage
+      title: Результат выполнения скрипта
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - script_id
+          - status
+          - executed_at
+        properties:
+          script_id:
+            type: string
+            format: uuid
+            description: Идентификатор скрипта
+          status:
+            type: string
+            description: Статус выполнения скрипта
+          executed_at:
+            type: string
+            format: date-time
+            description: Время завершения выполнения скрипта
+          description:
+            type: string
+            description: Дополнительная информация о выполнении
+      examples:
+        - payload:
+            script_id: "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+            status: "success"
+            executed_at: "2025-11-06T10:00:00Z"
+            description: "скрипт выполнен успешно"
+    ScriptExecutionRequestMessage:
+      name: ScriptExecutionRequestMessage
+      title: Запрос на выполнение скрипта
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - script_id
+        properties:
+          script_id:
+            type: string
+            format: uuid
+            description: Идентификатор скрипта для выполнения
+          user_id:
+            type: string
+            format: uuid
+            description: Идентификатор пользователя, инициировавшего выполнение (если есть)
+          trigger_id:
+            type: string
+            format: uuid
+            description: Идентификатор триггера, инициировавшего выполнение (если автоматический запуск)
+      examples:
+        - payload:
+            script_id: "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+            user_id: "u1b2c3d4-5678-90ab-cdef-1234567890cd"
+            trigger_id: "t1b2c3d4-5678-90ab-cdef-0987654321ef"     
+    DeviceCommandRequestMessage:
+      name: DeviceCommandRequestMessage
+      title: Команда для устройства
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - device_id
+          - command_id
+        properties:
+          device_id:
+            type: string
+            format: uuid
+            description: ID устройства, которому предназначена команда
+          command_id:
+            type: string
+            format: uuid
+            description: ID команды
+          parameters:
+            type: object
+            description: Параметры команды (если есть)
+      examples:
+        - payload:
+            device_id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+            command_id: "c1b2c3d4-5678-90ab-cdef-1234567890ef"
+            parameters:
+              brightness: 80
+    DeviceCommandResponseMessage:
+      name: DeviceCommandResponseMessage
+      title: Результат выполнения команды устройством
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - device_id
+          - command_id
+          - status
+          - executed_at
+        properties:
+          device_id:
+            type: string
+            format: uuid
+            description: ID устройства, которое выполнило команду
+          command_id:
+            type: string
+            format: uuid
+            description: ID выполненной команды
+          status:
+            type: string
+            description: Статус выполнения команды (например, success, failed)
+          executed_at:
+            type: string
+            format: date-time
+            description: Время выполнения команды
+          description:
+            type: string
+            description: Дополнительная информация
+      examples:
+        - payload:
+            device_id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+            command_id: "c1b2c3d4-5678-90ab-cdef-1234567890ef"
+            status: "success"
+            executed_at: "2025-11-06T11:00:00Z"
+            description: "Команда выполнена успешно"

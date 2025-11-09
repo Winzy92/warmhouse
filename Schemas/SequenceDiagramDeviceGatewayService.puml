@@ -1,0 +1,18 @@
+@startuml
+actor User
+participant "API" as API
+participant "DeviceManager" as DM
+participant "CommandExecutor" as CE
+participant "ProtocolAdapter" as PA
+participant "Device" as D
+
+User -> API : sendCommand(deviceId, command)
+API -> DM : sendCommand(deviceId, command)
+DM -> CE : executeCommand(Device, command)
+CE -> PA : sendCommand(Device, command)
+PA -> D : applyCommand(command)
+D -> PA : ack()
+PA -> CE : handleAck(Device, ack)
+CE -> DM : updateDeviceState(Device, ack)
+
+@enduml

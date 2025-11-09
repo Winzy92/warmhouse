@@ -1,0 +1,17 @@
+@startuml
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(telemetry, "Telemetry Service", "Сервис хранения телеметрии и истории событий") {
+
+  Component(eventListener, "Event Listener", "Получение событий и телеметрии из Kafka")
+  Component(dataProcessor, "Data Processor", "Обработка входящих сообщений")
+  Component(repository, "Repository", "Хранение телеметрии, действий пользователей и истории сценариев")
+  Component(api, "Telemetry API", "API для получения исторических данных по датчикам и исполнительным механизмам, а также сценариям")
+}
+
+Rel(eventListener, dataProcessor, "Обработка входящей телеметрии")
+Rel(dataProcessor, repository, "Сохранение обработанных данных")
+Rel(api, repository, "Запрос исторических данных")
+
+@enduml

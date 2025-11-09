@@ -1,0 +1,15 @@
+@startuml
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(notification, "Notification Service", "Сервис отправки уведомлений пользователям") {
+
+  Component(eventListener, "Event Listener", "Подписка на события из Kafka и сценариев Users Scripts")
+  Component(notificationManager, "Notification Manager", "Формирование и управление уведомлениями")
+  Component(deliveryService, "Delivery Service", "Отправка уведомлений стандартного типа (смс, push, email)")
+}
+
+Rel(eventListener, notificationManager, "Получение событий для уведомлений")
+Rel(notificationManager, deliveryService, "Отправка уведомлений пользователю")
+
+@enduml

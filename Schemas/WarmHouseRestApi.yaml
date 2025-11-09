@@ -1,0 +1,748 @@
+openapi: 3.0.1
+info:
+  title: WarmHouse 2.0 REST API
+  version: v1
+servers:
+  - url: http://localhost:7448
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Регистрация нового пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              example:
+                value:
+                  email: "megaPupkin@yandex.ru"
+                  password: "dfjgbqA22!"
+                  role: "Admin"
+                  name: "Пупкин Василий"
+                  username: "berloga_pupkina"
+                  phone_number: "+79999999999"
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              examples:
+                example:
+                  value:
+                    username: "berloga_pupkina"
+                    email: "megaPupkin@yandex.ru"
+        '400':
+          description: Некорректные данные регистрации
+        '409':
+          description: Пользователь с таким номером телефона уже существует
+        '500':
+          description: Ошибка сервера
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Авторизация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              example:
+                value:
+                  username: "berloga_pupkina"
+                  password: "dfjgbqA22!"
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                example:
+                  value:
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    expires_in: 3600
+        '401':
+          description: Неверный логин или пароль
+        '500':
+          description: Ошибка сервера
+  /api/houses:
+    post:
+      tags:
+        - Houses
+      summary: Создание нового дома
+      security:
+        - Bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HouseRequest'
+            examples:
+              example:
+                value:
+                  name: "Берлога №1"
+                  address: "ул. Ленина, д.1"
+      responses:
+        '200':
+          description: Дом успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HouseResponse'
+              examples:
+                example:
+                  value:
+                    id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+                    name: "Берлога №1"
+                    address: "ул. Ленина, д.1"
+        '400':
+          description: Некорректные данные запроса
+        '401':
+          description: Ошибка авторизации
+        '500':
+          description: Ошибка сервера
+    get:
+      tags:
+        - Houses
+      summary: Получение списка домов текущего пользователя
+      security:
+        - Bearer: []
+      responses:
+        '200':
+          description: Список домов пользователя
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HouseResponse'
+              examples:
+                example:
+                  value:
+                    - id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+                      name: "Берлога №1"
+                      address: "ул. Ленина, д.1"
+                    - id: "23fcdbc1-74ba-f011-8089-94ddb11b7094"
+                      name: "Берлога №2"
+                      address: "ул. Ленина, д.5"
+        '401':
+          description: Неавторизованный
+        '500':
+          description: Ошибка сервера
+  /api/houses/rooms:
+    post:
+      tags:
+        - Houses
+      summary: Добавление нового помещения
+      security:
+        - Bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoomRequest'
+            examples:
+              example:
+                value:
+                  house_id: "a61752b4-75ba-f011-b73d-b8e0b11b7093"
+                  name: "Гостиная"
+                  description: "Комната для приема гостей"
+      responses:
+        '200':
+          description: Комната успешно добавлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoomResponse'
+              examples:
+                example:
+                  value:
+                    id: "221752b4-75ba-f011-b73d-b8e0b11b7093"
+                    house_id: "a61752b4-75ba-f011-b73d-b8e0b11b7093"
+                    name: "Гостиная"
+                    description: "Комната для приема гостей"
+        '400':
+          description: Некорректные данные запроса
+        '401':
+          description: Неавторизованный
+        '404':
+          description: Дом не найден
+        '500':
+          description: Ошибка сервера
+          
+    
+  /api/houses/{houseId}/rooms:
+    get:
+      tags:
+        - Houses
+      summary: Получение списка помещений выбранного дома
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: houseId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID дома
+      responses:
+        '200':
+          description: Список помещений дома
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoomResponse'
+              examples:
+                example:
+                  value:
+                    - id: "221752b4-75ba-f011-b73d-b8e0b11b7093"
+                      house_id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+                      name: "Гостиная"
+                      description: "Комната для приема гостей"
+                    - id: "321752b4-75ba-f011-b73d-b8e0b11b7094"
+                      house_id: "12fcdbc1-74ba-f011-8089-94ddb11b7093"
+                      name: "Кухня"
+                      description: "Комната для приготовления пищи"
+        '401':
+          description: Неавторизованный
+        '404':
+          description: Дом не найден
+        '500':
+          description: Ошибка сервера
+  /api/devices/create:
+    post:
+      tags:
+        - Devices
+      summary: Добавление нового устройства в помещение дома
+      security:
+        - Bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDeviceRequest'
+            examples:
+              example:
+                value:
+                  house_id: "a61752b4-75ba-f011-b73d-b8e0b11b7093"
+                  room_id: "221752b4-75ba-f011-b73d-b8e0b11b7093"
+                  device_type_id: "6e1743e1-55ba-f011-8089-94ddb11b7011"
+                  protocol_id: "8b7412a3-77ca-f011-8089-94ddb11b7022"
+                  serial_number: "SN-001-TEMP"
+                  status: "active"
+      responses:
+        '201':
+          description: Устройство успешно добавлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+              examples:
+                example:
+                  value:
+                    id: "1a1743e1-55ba-f011-8089-94ddb11b7033"
+                    house_id: "a61752b4-75ba-f011-b73d-b8e0b11b7093"
+                    room_id: "221752b4-75ba-f011-b73d-b8e0b11b7093"
+                    device_type_id: "6e1743e1-55ba-f011-8089-94ddb11b7011"
+                    protocol_id: "8b7412a3-77ca-f011-8089-94ddb11b7022"
+                    serial_number: "SN-001-TEMP"
+                    status: "active"
+        '400':
+          description: Некорректные данные запроса
+        '401':
+          description: Неавторизованный
+        '404':
+          description: Дом или комната не найдены
+        '500':
+          description: Ошибка сервера
+  /api/devices/updateDeviceValue:
+    patch:
+      tags:
+        - Devices
+      summary: Обновление состояния устройства
+      description: Позволяет изменить текущий статус устройства и установить новое значение (например, температуру, уровень освещения или положение замка).
+      security:
+        - Bearer: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeviceValueRequest'
+            examples:
+              example:
+                value:
+                  device_id: "1a1743e1-55ba-f011-8089-94ddb11b7033"
+                  status: "active"
+                  value: 24
+      responses:
+        '200':
+          description: Значение устройства успешно обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+              examples:
+                example:
+                  value:
+                    id: "1a1743e1-55ba-f011-8089-94ddb11b7033"
+                    house_id: "a61752b4-75ba-f011-b73d-b8e0b11b7093"
+                    room_id: "221752b4-75ba-f011-b73d-b8e0b11b7093"
+                    device_type_id: "6e1743e1-55ba-f011-8089-94ddb11b7011"
+                    protocol_id: "8b7412a3-77ca-f011-8089-94ddb11b7022"
+                    serial_number: "SN-001-TEMP"
+                    status: "active"
+                    value: 24
+        '400':
+          description: Некорректные данные запроса
+        '401':
+          description: Неавторизованный
+        '404':
+          description: Устройство не найдено
+        '500':
+          description: Ошибка сервера
+  /api/rooms/{roomId}/devices/values:
+    get:
+      tags:
+        - Devices
+      summary: Получение текущих значений устройств в помещении
+      description: Возвращает актуальные статусы и значения всех устройств, установленных в помещении. Данные запрашиваются у шлюза устройств (Device Gateway).
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Идентификатор помещения, для которой требуется получить значения устройств
+      responses:
+        '200':
+          description: Текущие значения устройств успешно получены
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceValueResponse'
+              examples:
+                example:
+                  value:
+                    - device_id: "1a1743e1-55ba-f011-8089-94ddb11b7033"
+                      name: "Датчик температуры"
+                      type: "TemperatureSensor"
+                      status: "active"
+                      value: 24
+                      unit: "°C"
+                      modified: "2025-11-05T09:45:00Z"
+                    - device_id: "2b2743e1-66ba-f011-8089-94ddb11b7044"
+                      name: "Умная лампа"
+                      type: "Light"
+                      status: "active"
+                      value: 75
+                      unit: "%"
+                      last_updated: "2025-11-05T09:45:02Z"
+        '401':
+          description: Неавторизованный
+        '404':
+          description: Помещение не найдено или в нем нет устройств
+        '500':
+          description: Ошибка при получении данных от шлюза
+  /api/scripts/create:
+    post:
+      tags:
+        - Scripts
+      summary: Создание нового пользовательского скрипта с триггером
+      security:
+        - Bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScriptRequest'
+            examples:
+              example:
+                value:
+                  name: "Умное отопление"
+                  is_active: true
+                  trigger:
+                    name: "Температура и дверь"
+                    logical_operator: "AND"
+                    description: "Срабатывает если температура ниже 20 и дверь открыта"
+                    conditions:
+                      - device_id: "a61752b4-75ba-f011-b73d-b8e0b11b7093"
+                        parameter: "temperature"
+                        operator: "<"
+                        value: "20"
+                      - device_id: "b71412b4-75ba-f011-b73d-b8e0b11b7093"
+                        parameter: "status"
+                        operator: "=="
+                        value: "open"
+      responses:
+        '200':
+          description: Скрипт успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScriptResponse'
+              examples:
+                example:
+                  value:
+                    id: "fcb752b4-75ba-f011-b73d-b8e0b11b7093"
+                    name: "Умное отопление"
+                    is_active: true
+                    trigger:
+                      id: "trg752b4-75ba-f011-b73d-b8e0b11b7093"
+                      name: "Температура и дверь"
+                      logical_operator: "AND"
+                      description: "Срабатывает если температура ниже 20 и дверь открыта"
+                      conditions:
+                        - id: "cond1-uuid"
+                          device_id: "a61752b4-75ba-f011-b73d-b8e0b11b7093"
+                          parameter: "temperature"
+                          operator: "<"
+                          value: "20"
+                        - id: "cond2-uuid"
+                          device_id: "b71412b4-75ba-f011-b73d-b8e0b11b7093"
+                          parameter: "status"
+                          operator: "=="
+                          value: "open"
+        '400':
+          description: Некорректные данные запроса
+        '401':
+          description: Неавторизованный
+        '500':
+          description: Ошибка сервера
+
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - username
+        - phone_number
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        name:
+          type: string
+        username:
+          type: string
+        phone_number:
+          type: string
+          example: "+79999999999"
+        role:
+          type: string
+          enum: [Admin, User, Guest]
+
+    RegisterResponse:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT токен для авторизованных запросов
+        expires_in:
+          type: integer
+          description: Время жизни токена в секундах
+
+    HouseRequest:
+      type: object
+      required:
+        - name
+        - address
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+
+    HouseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+
+    CreateRoomRequest:
+      type: object
+      required:
+        - house_id
+        - name
+      properties:
+        house_id:
+          type: string
+          format: uuid
+          description: ID дома, к которому добавляется помещение
+        name:
+          type: string
+          description: Наименование помещения
+        description:
+          type: string
+          description: Описание помещения
+
+    RoomResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        house_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          
+    CreateDeviceRequest:
+      type: object
+      required:
+        - house_id
+        - room_id
+        - device_type_id
+        - protocol_id
+        - serial_number
+        - status
+      properties:
+        house_id:
+          type: string
+          format: uuid
+          description: ID дома, в котором находится устройство
+        room_id:
+          type: string
+          format: uuid
+          description: ID комнаты, в которой будет установлено устройство
+        device_type_id:
+          type: string
+          format: uuid
+          description: ID типа устройства (из справочника DeviceType)
+        protocol_id:
+          type: string
+          format: uuid
+          description: ID используемого протокола (из справочника ProtocolType)
+        serial_number:
+          type: string
+          description: Уникальный серийный номер устройства
+        status:
+          type: string
+          description: Текущее состояние устройства (например, active, inactive)
+          example: "active"
+      
+      
+    DeviceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        house_id:
+          type: string
+          format: uuid
+        room_id:
+          type: string
+          format: uuid
+        device_type_id:
+          type: string
+          format: uuid
+        protocol_id:
+          type: string
+          format: uuid
+        serial_number:
+          type: string
+        status:
+          type: string
+    UpdateDeviceValueRequest:
+      type: object
+      required:
+        - device_id
+      properties:
+        device_id:
+          type: string
+          format: uuid
+          description: Идентификатор устройства
+        status:
+          type: string
+          description: Новый статус устройства (например, active, inactive, error)
+          example: "active"
+        value:
+          type: number
+          description: Новое значение для устройства (например, температура, мощность, уровень)
+          example: 24
+    DeviceValueResponse:
+      type: object
+      properties:
+        device_id:
+          type: string
+          format: uuid
+          description: Идентификатор устройства
+        name:
+          type: string
+          description: Наименование устройства
+        type:
+          type: string
+          description: Тип устройства
+        status:
+          type: string
+          description: Текущее состояние устройства
+        value:
+          type: number
+          description: Текущее значение устройства (например, температура, уровень освещенности)
+        unit:
+          type: string
+          description: Единица измерения значения (например, °C, %, Вт)
+        modified:
+          type: string
+          format: date-time
+          description: Время последнего обновления состояния
+    CreateScriptRequest:
+      type: object
+      required:
+        - name
+        - trigger
+      properties:
+        name:
+          type: string
+          description: Название скрипта
+        is_active:
+          type: boolean
+          default: true
+          description: Включён ли скрипт
+        trigger:
+          $ref: '#/components/schemas/CreateTriggerRequest'
+    CreateTriggerRequest:
+      type: object
+      required:
+        - name
+        - conditions
+      properties:
+        name:
+          type: string
+          description: Название триггера
+        description:
+          type: string
+        logical_operator:
+          type: string
+          enum: [ AND, OR ]
+          description: Логический оператор для объединения условий
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerConditionRequest'
+    TriggerConditionRequest:
+      type: object
+      required:
+        - device_id
+        - parameter
+        - operator
+        - value
+      properties:
+        device_id:
+          type: string
+          format: uuid
+          description: ID устройства
+        parameter:
+          type: string
+          description: Параметр устройства (например, temperature, status)
+        operator:
+          type: string
+          description: Логический оператор (<, >, ==, !=)
+        value:
+          type: string
+          description: Значение для сравнения
+    ScriptResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        is_active:
+          type: boolean
+        trigger:
+          $ref: '#/components/schemas/TriggerResponse'
+    TriggerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        logical_operator:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerConditionResponse'
+    TriggerConditionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+          format: uuid
+        parameter:
+          type: string
+        operator:
+          type: string
+        value:
+          type: string
+
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

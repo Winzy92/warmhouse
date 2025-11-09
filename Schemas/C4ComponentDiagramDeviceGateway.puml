@@ -1,0 +1,29 @@
+@startuml
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(deviceGateway, "Device Gateway Service", "Сервис взаимодействия с физическими устройствами") {
+
+  Component(api, "Device Gateway API", "Принимает команды от Actuator Control Service и Users Scripts, отправляет ответы")
+  Component(protocolAdapter, "Protocol Adapter", "Обеспечивает поддержку стандартных протоколов устройств, общение и сбор информации с физического устройства")
+  Component(deviceManager, "Device Manager", "Следит за состоянием подключенных устройств, проверка активного соединения перед выполнением команд")
+  Component(telemetryPublisher, "Telemetry Publisher", "Публикует телеметрию устройств в Kafka")
+  Component(commandExecutor, "Command Executor", "Отправляет команды на устройства и обрабатывает подтверждения выполнения")
+  Component(eventListener, "Event Listener", "Слушает события и состояния устройств через Protocol Adapter")
+  Component(repository, "Repository", "Хранит метаданные устройств и историю подключений/состояний")
+}
+
+Container(kafka, "Message Broker", "Kafka", "Асинхронная коммуникация между микросервисами (телеметрия, команды, уведомления).")
+
+Rel(api, deviceManager, "Получение/проверка состояния устройств перед выполнением команд")
+Rel(deviceManager, commandExecutor, "Передача команды на исполнение устройствам через протоколы")
+Rel(commandExecutor, protocolAdapter, "Отправка команды на устройство через соответствующий протокол")
+Rel(protocolAdapter, eventListener, "События от устройств через протоколы")
+Rel(eventListener, deviceManager, "Обновление состояния устройств и управление соединениями")
+Rel(deviceManager, telemetryPublisher, "Публикация телеметрии в Kafka")
+Rel(deviceManager, repository, "Хранение метаданных устройств и состояния подключения")
+Rel(eventListener, telemetryPublisher, "События устройств публикуются в Kafka")
+Rel(telemetryPublisher, kafka, "Публикация телеметрии и событий")
+
+@enduml
+

@@ -1,0 +1,25 @@
+@startuml
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(usersScripts, "Users Scripts Service", "Сервис пользовательских сценариев") {
+
+  Component(api, "Scripts API", "REST API для создания, управления и запуска сценариев")
+  Component(scriptManager, "Script Manager", "Создание, редактирование и хранение сценариев")
+  Component(scriptEngine, "Script Engine", "Выполнение сценариев, сценарии могут быть как с параллельным выполнением так и с последовательным, в случае контролируемого последовательного выполнения из Event Listener приходит id сценария, шаг, статус")
+  Component(eventListener, "Event Listener", "Подписка на события из Kafka для триггеров сценариев")
+  Component(commandPublisher, "Command Publisher", "Отправка команд на Actuator Control Service")
+  Component(repository, "Repository", "Хранение сценариев и истории выполнения")
+}
+
+Container(kafka, "Message Broker", "Kafka", "Асинхронная коммуникация между микросервисами (телеметрия, команды, уведомления).")
+
+Rel(api, scriptManager, "Создание и управление сценариями")
+Rel(scriptManager, repository, "Сохранение сценариев и их истории")
+Rel(eventListener, scriptEngine, "Команды на запуск сценария из Kafka")
+Rel(api, scriptEngine, "Запуск сценариев пользователем через API")
+Rel(scriptEngine, commandPublisher, "Отправка команд на исполнительные механизмы")
+Rel(scriptEngine, scriptManager, "Получение сценариев для выполнения")
+Rel(commandPublisher, kafka, "Команды для Actuator Control")
+
+@enduml
