@@ -1,0 +1,157 @@
+@startuml
+
+entity "User" as User {
+  *id : UUID
+  --
+  name : String
+  email : String
+  phone_number : String
+  username : String
+  password_hash : String
+  salt : String
+  last_login : DateTime
+}
+
+entity "House" as House {
+  *id : UUID
+  --
+  name : String
+  address : String
+}
+
+entity "UserHouse" as UserHouse {
+  *user_id : UUID
+  *house_id : UUID
+  --
+  role_in_house : String
+}
+
+entity "Room" as Room {
+  *id : UUID
+  --
+  house_id : UUID
+  name : String
+  description : String
+}
+
+entity "DeviceType" as DeviceType {
+  *id : UUID
+  --
+  name : String
+  description : String
+  units : String
+}
+
+entity "ProtocolType" as ProtocolType {
+  *id : UUID
+  --
+  name : String
+  description : String
+}
+
+entity "Device" as Device {
+  *id : UUID
+  --
+  device_type_id : UUID
+  house_id : UUID
+  room_id : UUID
+  protocol_id : UUID
+  serial_number : String
+  status : String
+}
+
+entity "Module" as Module {
+  *id : UUID
+  --
+  name : String
+  description : String
+}
+
+entity "ModuleDevice" as ModuleDevice {
+  *module_id : UUID
+  *device_id : UUID
+}
+
+entity "TelemetryData" as TelemetryData {
+  *id : UUID
+  --
+  device_id : UUID
+  module_id : UUID
+  timestamp : DateTime
+  value : String
+}
+
+entity "Script" as Script {
+  *id : UUID
+  --
+  user_house_id : UUID
+  name : String
+  definition : JSON
+  is_active : Boolean
+}
+
+entity "Trigger" as Trigger {
+  *id : UUID
+  --
+  script_id : UUID
+  name : String
+  description : String
+  logical_operator : String
+}
+
+entity "TriggerCondition" as TriggerCondition {
+  *id : UUID
+  --
+  trigger_id : UUID
+  device_id : UUID
+  parameter : String
+  operator : String
+  value : String
+}
+
+entity "Command" as Command {
+  *id : UUID
+  --
+  name : String
+  description : String
+  device_id : UUID
+  parameters : JSON
+}
+
+entity "ScriptCommand" as ScriptCommand {
+  *script_id : UUID
+  *command_id : UUID
+  --
+  execution_order : int
+}
+
+entity "Notification" as Notification {
+  *id : UUID
+  --
+  user_house_id : UUID
+  type : String
+  message : String
+  timestamp : DateTime
+  status : String
+}
+
+User ||--o{ UserHouse : participates
+House ||--o{ UserHouse : has
+House ||--o{ Room : has
+Room ||--o{ Device : contains
+House ||--o{ Device : contains
+Device }|--|| DeviceType : is of type
+Device }|--|| ProtocolType : uses
+Module ||--o{ ModuleDevice : contains
+Device ||--o{ ModuleDevice : belongs to
+Device ||--o{ TelemetryData : generates
+Module ||--o{ TelemetryData : generates
+UserHouse ||--o{ Script : creates
+Script ||--|| Trigger : has
+Trigger ||--o{ TriggerCondition : consists of
+Script ||--o{ ScriptCommand : contains
+Command ||--o{ ScriptCommand : used in
+Device ||--o{ Command : has
+UserHouse ||--o{ Notification : receives
+
+@enduml

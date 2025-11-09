@@ -1,0 +1,34 @@
+@startuml
+class DeviceManager {
+    +getDeviceState(deviceId): String
+    +updateDeviceState(deviceId, state)
+    +sendCommand(deviceId, command)
+    +handleEvent(event)
+}
+
+class CommandExecutor {
+    +executeCommand(device: Device, command: Command)
+    -sendToProtocolAdapter(device, command)
+    -handleAck(device, ack)
+}
+
+class Device {
+    +id: Guid
+    +type: String
+    +state: String
+    +location: String
+    +protocol: String
+}
+
+
+class ProtocolAdapter {
+    +sendCommand(device: Device, command: Command)
+    +subscribeEvents(device: Device)
+}
+
+DeviceManager --> Device
+DeviceManager --> CommandExecutor
+CommandExecutor --> Device
+CommandExecutor --> ProtocolAdapter
+ProtocolAdapter --> Device
+@enduml

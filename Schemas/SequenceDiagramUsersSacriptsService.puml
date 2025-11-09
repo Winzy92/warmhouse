@@ -1,0 +1,14 @@
+@startuml
+actor User
+participant "API" as API
+participant "ScriptManager" as SM
+participant "ScriptEngine" as SE
+participant "CommandPublisher" as CP
+participant "ActuatorControlService" as AC
+
+User -> API : runScript(scriptId)
+API -> SM : getScript(scriptId)
+SM -> SE : runScript(action)
+SE -> CP : sendCommand(action)
+CP -> AC : executeCommand(action)
+@enduml

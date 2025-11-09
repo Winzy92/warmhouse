@@ -1,0 +1,9 @@
+﻿services:
+  temperature-api:
+    build: .
+    container_name: temperature-api
+    ports:
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_URLS=http://+:8081
+    restart: always

@@ -1,0 +1,20 @@
+@startuml
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(auth, "Authentication Service", "Сервис управления пользователями и доступом") {
+
+  Component(api, "Authentication API", "API для авторизации и аутентификации пользователей")
+  Component(userManager, "User Manager", "Создание, обновление, удаление пользователей")
+  Component(tokenService, "Token Service", "Генерация и проверка JWT токенов аутентификации")
+  Component(sessionManager, "Session Manager", "Управление сессиями пользователей")
+  Component(repository, "Repository", "Хранение данных пользователей")
+}
+
+Rel(api, userManager, "Запросы на управление пользователями")
+Rel(api, tokenService, "Генерация и проверка токенов")
+Rel(tokenService, sessionManager, "Взаимодействие с сессиями для проверки и обновления")
+Rel(userManager, repository, "Сохранение и чтение информации о пользователях")
+Rel(sessionManager, repository, "Хранение активных сессий и токенов")
+
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+class ScriptEngine {
+    +executeScript(scriptId)
+    +scheduleScript(scriptId, trigger)
+    +handleEvent(event)
+}
+
+class ScriptManager {
+    +createScript(script)
+    +getScript(scriptId)
+    +updateScript(scriptId, script)
+}
+
+class Script {
+    +id: Guid
+    +actions: List<Action>
+}
+
+class Action {
+    +targetDeviceId: Guid
+    +command: Command
+}
+
+ScriptEngine --> ScriptManager
+ScriptManager --> Script
+ScriptEngine --> Action
+@enduml

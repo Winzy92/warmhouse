@@ -1,0 +1,15 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(client, "Client", "Пользователь системы")
+
+System_Boundary(system, "Smart_home") {
+    System(SmartHomeApi, "SmartHomeApi", "Позволяет добавлять/удалять датчики, получать значения в реальном времени")
+}
+
+System(TemperatureData, "TemperatureData", "Источник данных для значения датчиков")
+
+Rel(client, SmartHomeApi, "Request", "HTTP")
+Rel(SmartHomeApi, TemperatureData, "GetValue Request", "HTTP")
+
+@enduml

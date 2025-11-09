@@ -1,0 +1,16 @@
+@startuml
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container(video, "Video Stream Service", "Сервис трансляции видеопотоков") {
+
+  Component(streamAPI, "ideo Stream API", "API для запроса видеопотоков пользователями")
+  Component(streamManager, "Stream Manager", "Управление подключениями, буферизация потоков")
+  Component(deviceConnector, "Device Connector", "Подключение к камерам")
+}
+
+Rel(streamAPI, streamManager, "Запрос видеопотока")
+Rel(streamManager, deviceConnector, "Получение данных с камеры")
+Rel(streamManager, streamAPI, "Возврат видеопотока пользователю")
+
+@enduml

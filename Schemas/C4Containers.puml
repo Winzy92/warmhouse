@@ -1,0 +1,56 @@
+@startuml
+
+!define RECTANGLE class
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Пользователь", "Владелец умного дома, управление устройствами через web интерфейс или мобильное приложение")
+
+System_Boundary(warmHouse, "WarmHouse 2.0") {
+
+  Container(api, "WarmHouse API", "Единая точка для мобильного приложения и веб интерфейса")
+
+  Container(auth, "Authentication Service", "Управление пользователями, управление доступом")
+
+  Container(deviceReg, "Device Registry Service", "Регистрирует все устройства пользователя (любого типа). Хранит информацию о датчиках и расположении в доме.")
+
+  Container(deviceGateway, "Device Gateway", "Обеспечивает подключение устройств по стандартным протоколам, принимает команды, отдает телеметрию.")
+
+  Container(controlActuators, "Actuator Control Service", "Управляет исполнительными механизмами (замки, ворота, свет). Принимает команды от пользователя, отправляет их на устройства.")
+
+  Container(video, "Video Stream Service", "Трансляция видео потока")
+
+  Container(usersScripts, "Users Scripts", "Позволяет создавать пользовательские сценарии")
+
+  Container(telemetry, "Telemetry Service", "Хранение исторических данных, действия пользователей, отработка сценариев.")
+
+  ContainerDb(pg, "Database", "PostgreSQL", "Хранит пользователей, устройства, сценарии")
+  
+  Container(kafka, "Message Broker", "Kafka", "Асинхронная коммуникация между микросервисами (телеметрия, команды, уведомления).")
+
+  Container(notification, "Notification Service", "Отправляет уведомления (выбранного типа) пользователям. Подписан на события из Message Broker и сценарии Users Scripts.")
+}
+
+Rel(user, api, "Использует через web-интерфейс/мобильное приложение, запросы API")
+Rel(api, auth, "Авторизация пользователей, запрос API")
+Rel(api, deviceReg, "CRUD устройств теплого дома, получение статусов")
+Rel(api, usersScripts, "Создание и управление пользовательскими сценариями")
+Rel(api, controlActuators, "Отправка команд исполнительным механизмам")
+
+Rel(deviceReg, pg, "Хранит информацию об устройствах в доме")
+Rel(telemetry, pg, "Хранит историю по механизмам, датчикам и сценариям")
+Rel(auth, pg, "Хранит данные пользователей")
+
+Rel(deviceGateway, kafka, "Публикация событий от устройств в системе")
+Rel(controlActuators, deviceGateway, "Отправляет команды на устройства")
+Rel(usersScripts, kafka, "Подписка на события, выполнение сценариев")
+Rel(video, api, "Передаёт видеопотоки пользователю")
+
+Rel(usersScripts, controlActuators, "Передаёт команды на исполнительные механизмы в соответствии со сценариями")
+Rel(kafka, telemetry, "Передаёт телеметрию для хранения")
+
+Rel(kafka, notification, "Передаёт уведомления для пользователя например при старте или завершении выполнения сценария")
+Rel(notification, api, "Доставляет уведомления выбранного типа пользователю")
+Rel(notification, auth, "Получает данные о пользователях и настройках уведомлений")
+
+
+@enduml

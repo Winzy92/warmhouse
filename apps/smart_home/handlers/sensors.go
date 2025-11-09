@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"smarthome/db"
@@ -108,8 +109,10 @@ func (h *SensorHandler) GetTemperatureByLocation(c *gin.Context) {
 		return
 	}
 
+    escapedLocation := url.QueryEscape(location)
+
 	// Fetch temperature data from the external API
-	tempData, err := h.TemperatureService.GetTemperature(location)
+	tempData, err := h.TemperatureService.GetTemperature(escapedLocation)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": fmt.Sprintf("Failed to fetch temperature data: %v", err),
